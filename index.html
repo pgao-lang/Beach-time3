@@ -10,24 +10,40 @@
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      background: #4a90d9;
+      background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: 'Chalkboard SE', 'Comic Sans MS', 'Segoe UI Rounded', cursive;
     }
 
-    /* ── Game container — locked to 3:2 aspect ratio ── */
+    /* ══════════════════════════════════════════
+       FULL-SCREEN BLURRED BACKDROP
+       Fills any letterbox area with a blurred
+       version of the current background image.
+    ══════════════════════════════════════════ */
+    #backdrop {
+      position: fixed;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: blur(22px) brightness(0.5);
+      transform: scale(1.07); /* hide blur edge fringe */
+      z-index: 0;
+    }
+
+    /* ══════════════════════════════════════════
+       GAME CONTAINER — 3:2 aspect ratio
+    ══════════════════════════════════════════ */
     #game {
       position: relative;
       width: min(100vw, calc(100vh * 1.5));
       height: min(calc(100vw / 1.5), 100vh);
       overflow: hidden;
-      border-radius: 14px;
-      box-shadow: 0 10px 50px rgba(0,0,0,0.45);
+      z-index: 1;
     }
 
-    /* ── Background ── */
+    /* In-game background layer */
     #bg {
       position: absolute;
       inset: 0;
@@ -35,51 +51,40 @@
       background-position: center;
     }
 
-    /* ═══════════════════════════════════════
+    /* ══════════════════════════════════════════
        START SCREEN
-    ═══════════════════════════════════════ */
+       Semi-transparent warm overlay on top of
+       close-door.png (set as #bg on page load).
+    ══════════════════════════════════════════ */
     #start-screen {
       position: absolute;
       inset: 0;
-      background: linear-gradient(160deg, #a8d8f0 0%, #ffeea0 60%, #ffd060 100%);
+      background: rgba(255, 245, 215, 0.52);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: clamp(16px, 3vw, 36px);
+      gap: clamp(14px, 3vh, 38px);
       z-index: 100;
     }
 
-    /* Decorative sun on start screen */
-    #start-screen::before {
-      content: '☀️';
-      position: absolute;
-      top: 8%;
-      right: 12%;
-      font-size: clamp(2rem, 6vw, 5rem);
-      animation: spinSun 8s linear infinite;
-      pointer-events: none;
-    }
-
-    @keyframes spinSun {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-
-    /* Dialog bubble on start screen */
+    /* ══════════════════════════════════════════
+       SPEECH BUBBLE — shared across all states
+    ══════════════════════════════════════════ */
     .bubble {
+      position: relative;
       background: #fff;
       border: 4px solid #f0901c;
       border-radius: 22px;
-      padding: clamp(10px, 2vw, 18px) clamp(20px, 4vw, 40px);
-      font-size: clamp(1.1rem, 3.2vw, 2rem);
+      padding: clamp(10px, 1.8vw, 18px) clamp(20px, 4vw, 44px);
+      font-size: clamp(1rem, 3vw, 1.9rem);
       font-weight: 900;
       color: #333;
       text-align: center;
-      box-shadow: 0 5px 18px rgba(0,0,0,0.12);
-      position: relative;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.16);
+      white-space: nowrap;
     }
-
+    /* Downward speech-bubble tail */
     .bubble::after {
       content: '';
       position: absolute;
@@ -89,7 +94,6 @@
       border-top-color: #fff;
       z-index: 1;
     }
-
     .bubble::before {
       content: '';
       position: absolute;
@@ -99,99 +103,72 @@
       border-top-color: #f0901c;
     }
 
-    /* START button */
-    #start-btn {
-      background: linear-gradient(135deg, #ff7f2a 0%, #ff5500 100%);
+    /* ══════════════════════════════════════════
+       BUTTONS — shared pill style
+    ══════════════════════════════════════════ */
+    .btn {
+      background: linear-gradient(135deg, #ff7f2a 0%, #ff5200 100%);
       color: #fff;
       border: none;
       border-radius: 60px;
-      padding: clamp(10px, 2vw, 18px) clamp(32px, 7vw, 72px);
+      padding: clamp(10px, 1.8vh, 18px) clamp(28px, 6.5vw, 70px);
       font-family: inherit;
-      font-size: clamp(1rem, 3vw, 1.9rem);
+      font-size: clamp(0.95rem, 2.6vw, 1.75rem);
       font-weight: 900;
       letter-spacing: 3px;
       text-transform: uppercase;
       cursor: pointer;
-      box-shadow: 0 6px 0 #b83c00, 0 10px 24px rgba(255,85,0,0.38);
+      box-shadow: 0 6px 0 #b83c00, 0 10px 24px rgba(255,82,0,0.38);
       transition: transform .12s, box-shadow .12s;
-      margin-top: clamp(4px, 1vw, 16px);
+      display: inline-block;
     }
-    #start-btn:hover  { transform: translateY(-3px); }
-    #start-btn:active {
+    .btn:hover  { transform: translateY(-3px); }
+    .btn:active {
       transform: translateY(4px);
-      box-shadow: 0 2px 0 #b83c00, 0 4px 12px rgba(255,85,0,0.3);
+      box-shadow: 0 2px 0 #b83c00, 0 4px 10px rgba(255,82,0,0.28);
     }
 
-    /* ═══════════════════════════════════════
-       DIALOG BUBBLE (in-game)
-    ═══════════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       IN-GAME DIALOG BUBBLE
+    ══════════════════════════════════════════ */
     #dialog {
       position: absolute;
       top: 4%;
       left: 50%;
       transform: translateX(-50%);
-      background: #fff;
-      border: 4px solid #f0901c;
-      border-radius: 20px;
-      padding: clamp(8px, 1.5vw, 16px) clamp(18px, 3.5vw, 36px);
-      font-size: clamp(0.85rem, 2.4vw, 1.4rem);
-      font-weight: 800;
-      color: #333;
-      white-space: nowrap;
+      display: none;
       z-index: 50;
-      display: none;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.14);
       pointer-events: none;
-    }
-    #dialog::after {
-      content: '';
-      position: absolute;
-      bottom: -17px; left: 50%;
-      transform: translateX(-50%);
-      border: 10px solid transparent;
-      border-top-color: #fff;
-      z-index: 1;
-    }
-    #dialog::before {
-      content: '';
-      position: absolute;
-      bottom: -22px; left: 50%;
-      transform: translateX(-50%);
-      border: 13px solid transparent;
-      border-top-color: #f0901c;
+      /* inherits .bubble look via JS-added class — see HTML */
     }
 
-    /* ═══════════════════════════════════════
+    /* ══════════════════════════════════════════
        DOOR REGIONS
-    ═══════════════════════════════════════ */
-    #door-hint {
-      position: absolute;
-      border: 5px solid rgba(255,220,0,0.95);
-      border-radius: 12px;
-      pointer-events: none;
-      display: none;
-      z-index: 30;
-      animation: ringPulse 1.1s ease-in-out infinite;
-    }
-
-    #door-click-zone {
-      position: absolute;
-      display: none;
-      z-index: 25;
-      cursor: pointer;
-      border-radius: 10px;
-    }
-
+    ══════════════════════════════════════════ */
+    /* Generous invisible click/drop areas */
+    #door-click-zone,
     #door-drop-zone {
       position: absolute;
       display: none;
-      z-index: 15;
-      border-radius: 10px;
+    }
+    #door-click-zone { z-index: 25; cursor: pointer; }
+    #door-drop-zone  { z-index: 15; }
+
+    /* Small circular ripple hint at door centre */
+    #door-hint {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 222, 0, 0.35);
+      border: 3px solid rgba(255, 222, 0, 0.9);
+      pointer-events: none;
+      display: none;
+      z-index: 30;
+      animation: ripplePulse 1.8s ease-out infinite;
     }
 
-    /* ═══════════════════════════════════════
-       DOG (room scenes)
-    ═══════════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       ROOM DOG — states 1 & 2
+    ══════════════════════════════════════════ */
     #dog {
       position: absolute;
       display: none;
@@ -199,14 +176,11 @@
       -webkit-user-drag: none;
       z-index: 20;
     }
+    #dog.drag-hint { animation: dogBounce 1s ease-in-out infinite; }
 
-    #dog.drag-hint {
-      animation: dogBounce 1s ease-in-out infinite;
-    }
-
-    /* ═══════════════════════════════════════
-       BEACH DOG + ITEMS
-    ═══════════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       BEACH DOG — states 3–6
+    ══════════════════════════════════════════ */
     #beach-dog {
       position: absolute;
       width: 26%;
@@ -219,6 +193,9 @@
       -webkit-user-drag: none;
     }
 
+    /* ══════════════════════════════════════════
+       ITEMS — states 3–5
+    ══════════════════════════════════════════ */
     .item {
       position: absolute;
       display: none;
@@ -229,24 +206,19 @@
     }
     .item:hover { transform: scale(1.07); }
 
-    /* Item positions */
     #juice-item    { width: 20%; left: 17%; bottom: 3%; }
     #suncream-item { width: 13%; left: 44%; bottom: 3%; }
     #swimring-item { width: 14%; left: 66%; bottom: 3%; cursor: grab; }
 
-    /* ═══════════════════════════════════════
-       STATE 6 — CONGRATS + GOLD
-    ═══════════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       STATE 6 — CONGRATULATIONS + GOLD + RESTART
+    ══════════════════════════════════════════ */
     #congrats {
+      /* styled as a bubble with bounce */
       position: absolute;
-      top: 10%;
+      top: 5%;
       left: 50%;
       transform: translateX(-50%);
-      font-size: clamp(1.1rem, 3.8vw, 2.6rem);
-      font-weight: 900;
-      color: #ffe000;
-      text-shadow: 2px 3px 0 #c47000, 0 0 24px rgba(255,210,0,0.8);
-      white-space: nowrap;
       display: none;
       z-index: 60;
       pointer-events: none;
@@ -255,118 +227,148 @@
 
     #gold {
       position: absolute;
-      width: 52%;
+      width: 50%;
       left: 50%;
       transform: translateX(-50%);
-      bottom: 2%;
+      bottom: 10%;
       display: none;
       z-index: 40;
       pointer-events: none;
     }
-    #gold.show {
-      animation: goldPulse 1.6s ease-in-out infinite;
+    #gold.show { animation: goldPulse 1.6s ease-in-out infinite; }
+
+    #restart-btn {
+      position: absolute;
+      bottom: 3%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      z-index: 70;
     }
 
-    /* ═══════════════════════════════════════
+    /* ══════════════════════════════════════════
        KEYFRAMES
-    ═══════════════════════════════════════ */
-    @keyframes ringPulse {
-      0%, 100% {
-        opacity: 0.45;
-        box-shadow: 0 0 10px rgba(255,220,0,0.4), inset 0 0 10px rgba(255,220,0,0.2);
-      }
-      50% {
+    ══════════════════════════════════════════ */
+
+    /* Circular ripple — door hint */
+    @keyframes ripplePulse {
+      0% {
+        transform: scale(0.9);
+        box-shadow:
+          0 0 0  0px rgba(255,222,0,0.85),
+          0 0 0  0px rgba(255,222,0,0.5),
+          0 0 0  0px rgba(255,222,0,0.25);
         opacity: 1;
-        box-shadow: 0 0 28px rgba(255,220,0,0.95), inset 0 0 18px rgba(255,220,0,0.45);
+      }
+      60% {
+        transform: scale(1.15);
+        box-shadow:
+          0 0 0 14px rgba(255,222,0,0.3),
+          0 0 0 28px rgba(255,222,0,0.15),
+          0 0 0 44px rgba(255,222,0,0.04);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(0.9);
+        box-shadow:
+          0 0 0  0px rgba(255,222,0,0),
+          0 0 0  0px rgba(255,222,0,0),
+          0 0 0  0px rgba(255,222,0,0);
+        opacity: 0.6;
       }
     }
 
+    /* Dog drag hint */
     @keyframes dogBounce {
       0%, 100% {
         filter: drop-shadow(0 0 6px rgba(255,220,0,0.7));
         transform: translateY(0);
       }
       50% {
-        filter: drop-shadow(0 0 18px rgba(255,220,0,1));
-        transform: translateY(-9px);
+        filter: drop-shadow(0 0 20px rgba(255,220,0,1));
+        transform: translateY(-10px);
       }
     }
 
+    /* Wrong-target shake */
     @keyframes shake {
-      0%, 100% { transform: translateX(0)    rotate(0deg); }
+      0%, 100% { transform: translateX(0)     rotate(0deg); }
       15%       { transform: translateX(-11px) rotate(-4deg); }
-      30%       { transform: translateX(11px)  rotate(4deg); }
-      45%       { transform: translateX(-7px)  rotate(-2.5deg); }
-      60%       { transform: translateX(7px)   rotate(2.5deg); }
-      75%       { transform: translateX(-4px)  rotate(-1deg); }
-      90%       { transform: translateX(4px)   rotate(1deg); }
+      30%       { transform: translateX( 11px) rotate( 4deg); }
+      45%       { transform: translateX( -7px) rotate(-2.5deg); }
+      60%       { transform: translateX(  7px) rotate( 2.5deg); }
+      75%       { transform: translateX( -4px) rotate(-1deg); }
+      90%       { transform: translateX(  4px) rotate( 1deg); }
     }
 
+    /* Congrats bubble bounce */
     @keyframes bouncePop {
-      from { transform: translateX(-50%) translateY(0)     scale(1); }
-      to   { transform: translateX(-50%) translateY(-13px) scale(1.09); }
+      from { transform: translateX(-50%) translateY(0px)   scale(1); }
+      to   { transform: translateX(-50%) translateY(-12px) scale(1.08); }
     }
 
+    /* Gold glitter pulse */
     @keyframes goldPulse {
       0%, 100% {
         transform: translateX(-50%) scale(1);
-        filter: drop-shadow(0 0 8px rgba(255,215,0,0.55));
+        filter: drop-shadow(0 0 8px rgba(255,215,0,0.5));
       }
       50% {
         transform: translateX(-50%) scale(1.08);
         filter:
-          drop-shadow(0 0 32px rgba(255,215,0,1))
-          drop-shadow(0 0 64px rgba(255,165,0,0.75));
+          drop-shadow(0 0 28px rgba(255,215,0,1))
+          drop-shadow(0 0 56px rgba(255,160,0,0.8));
       }
     }
 
-    /* Shake utility — applied via JS */
-    .shaking {
-      animation: shake .52s ease !important;
-    }
+    /* Shake utility class */
+    .shaking { animation: shake .52s ease !important; }
   </style>
 </head>
 <body>
-<div id="game">
 
-  <!-- Background -->
+<!-- Blurred full-screen backdrop — eliminates coloured letterbox bars -->
+<div id="backdrop"></div>
+
+<div id="game">
   <div id="bg"></div>
 
-  <!-- ── STATE 0: Start screen ── -->
+  <!-- STATE 0: Start screen -->
   <div id="start-screen">
     <div class="bubble">Let's help puppy to swim! 🐾</div>
-    <button id="start-btn">START ▶</button>
+    <button id="start-btn" class="btn">START ▶</button>
   </div>
 
-  <!-- ── In-game dialog bubble ── -->
-  <div id="dialog"></div>
+  <!-- In-game dialog bubble (reuses .bubble style) -->
+  <div id="dialog" class="bubble"></div>
 
-  <!-- ── Door regions ── -->
+  <!-- Door regions -->
   <div id="door-hint"></div>
   <div id="door-click-zone"></div>
   <div id="door-drop-zone"></div>
 
-  <!-- ── Room dog (states 1–2) ── -->
+  <!-- Room dog — states 1 & 2 -->
   <img id="dog" src="dog.png" draggable="false" alt="dog">
 
-  <!-- ── Beach dog (states 3–6) ── -->
+  <!-- Beach dog — states 3–6 -->
   <img id="beach-dog" src="sad-dog.png" draggable="false" alt="beach dog">
 
-  <!-- ── Items (states 3–5) ── -->
-  <img id="juice-item"    class="item" src="juice.png"      draggable="false" alt="juice">
-  <img id="suncream-item" class="item" src="sun-cream.png"  draggable="false" alt="sun cream">
-  <img id="swimring-item" class="item" src="swim-ring.png"  draggable="false" alt="swim ring">
+  <!-- Collectible items — states 3–5 -->
+  <img id="juice-item"    class="item" src="juice.png"     draggable="false" alt="juice">
+  <img id="suncream-item" class="item" src="sun-cream.png" draggable="false" alt="sun cream">
+  <img id="swimring-item" class="item" src="swim-ring.png" draggable="false" alt="swim ring">
 
-  <!-- ── State 6 rewards ── -->
-  <div id="congrats">🎉 Congratulations! 🎉</div>
-  <img id="gold" src="gold.png" draggable="false" alt="gold">
-
+  <!-- STATE 6 victory elements -->
+  <div id="congrats" class="bubble">🎉 Congratulations! 🎉</div>
+  <img id="gold" src="gold.png" draggable="false" alt="gold treasure">
+  <button id="restart-btn" class="btn">PLAY AGAIN ↺</button>
 </div>
 
 <script>
-/* ───────────────────────────────────────────
+/* ══════════════════════════════════════════
    REFS
-─────────────────────────────────────────── */
+══════════════════════════════════════════ */
+const backdrop    = document.getElementById('backdrop');
 const game        = document.getElementById('game');
 const bg          = document.getElementById('bg');
 const startScreen = document.getElementById('start-screen');
@@ -382,157 +384,183 @@ const suncreamEl  = document.getElementById('suncream-item');
 const swimringEl  = document.getElementById('swimring-item');
 const congratsEl  = document.getElementById('congrats');
 const goldEl      = document.getElementById('gold');
+const restartBtn  = document.getElementById('restart-btn');
 
-/* ───────────────────────────────────────────
+/* ══════════════════════════════════════════
    STATE
-─────────────────────────────────────────── */
+══════════════════════════════════════════ */
 let state = 0;
+let s6Timer = null; // guard for STATE 6 delayed reveal
 
-/* ───────────────────────────────────────────
-   DOOR HITBOX
-   Percentages measured from close-door.png / open-door.png (1080×719/720)
-   Door frame: roughly left 27%–46%, top 3%–90%
-─────────────────────────────────────────── */
+/* ══════════════════════════════════════════
+   BACKGROUND HELPER
+   Syncs both the in-game layer and the blurred backdrop.
+══════════════════════════════════════════ */
+function setBg(url) {
+  bg.style.backgroundImage       = url;
+  backdrop.style.backgroundImage = url;
+}
+
+/* ══════════════════════════════════════════
+   DOOR GEOMETRY
+   Percentages measured from close-door.png (1080×719).
+   Door frame spans ≈ left 27%–46%, top 3%–90%.
+══════════════════════════════════════════ */
 const DOOR = { L: 0.27, R: 0.46, T: 0.03, B: 0.90 };
 
-function applyDoorRegions() {
+/** Position the invisible click / drop rectangles over the door. */
+function applyDoorZones() {
   const { width: W, height: H } = game.getBoundingClientRect();
-  const l = DOOR.L * W;
-  const t = DOOR.T * H;
-  const w = (DOOR.R - DOOR.L) * W;
-  const h = (DOOR.B - DOOR.T) * H;
-  [doorHint, doorClick, doorDrop].forEach(el => {
-    el.style.left   = l + 'px';
-    el.style.top    = t + 'px';
-    el.style.width  = w + 'px';
-    el.style.height = h + 'px';
+  const l = DOOR.L * W,             t = DOOR.T * H;
+  const w = (DOOR.R - DOOR.L) * W, h = (DOOR.B - DOOR.T) * H;
+  [doorClick, doorDrop].forEach(el => {
+    el.style.left = l + 'px'; el.style.top    = t + 'px';
+    el.style.width = w + 'px'; el.style.height = h + 'px';
   });
 }
 
-/* ───────────────────────────────────────────
-   HELPERS
-─────────────────────────────────────────── */
+/** Position the small circular ripple hint at the door's centre. */
+function applyDoorHint() {
+  const { width: W, height: H } = game.getBoundingClientRect();
+  const cx = ((DOOR.L + DOOR.R) / 2) * W;
+  const cy = ((DOOR.T + DOOR.B) / 2) * H;
+  const r  = Math.max(22, Math.round(W * 0.033)); // ~3.3% of game width
+  doorHint.style.width  = (r * 2) + 'px';
+  doorHint.style.height = (r * 2) + 'px';
+  doorHint.style.left   = (cx - r) + 'px';
+  doorHint.style.top    = (cy - r) + 'px';
+}
+
+/* ══════════════════════════════════════════
+   UI HELPERS
+══════════════════════════════════════════ */
 function showDialog(text) {
-  dialogEl.textContent = text;
+  dialogEl.textContent  = text;
   dialogEl.style.display = 'block';
 }
 function hideDialog() { dialogEl.style.display = 'none'; }
 
 function shake(el) {
   el.classList.remove('shaking');
-  void el.offsetWidth; // force reflow
+  void el.offsetWidth; // force reflow to restart animation
   el.classList.add('shaking');
   el.addEventListener('animationend', () => el.classList.remove('shaking'), { once: true });
 }
 
 function hideGameElements() {
+  if (s6Timer) { clearTimeout(s6Timer); s6Timer = null; }
   [doorHint, doorClick, doorDrop].forEach(e => { e.style.display = 'none'; });
   dogEl.style.display = 'none';
   dogEl.classList.remove('drag-hint');
   beachDog.style.display = 'none';
   [juiceEl, suncreamEl, swimringEl].forEach(e => { e.style.display = 'none'; });
   congratsEl.style.display = 'none';
-  goldEl.style.display = 'none';
+  goldEl.style.display     = 'none';
   goldEl.classList.remove('show');
+  restartBtn.style.display = 'none';
   hideDialog();
 }
 
-/* ───────────────────────────────────────────
+/* ══════════════════════════════════════════
    STATE MACHINE
-─────────────────────────────────────────── */
+══════════════════════════════════════════ */
 function enter(n) {
   state = n;
-  switch (n) {
-    case 1: return s1();
-    case 2: return s2();
-    case 3: return s3();
-    case 4: return s4();
-    case 5: return s5();
-    case 6: return s6();
-  }
+  ({ 1: s1, 2: s2, 3: s3, 4: s4, 5: s5, 6: s6 })[n]?.();
 }
 
-/* STATE 1 — Close door */
+/* ── STATE 1 — Closed door ── */
 function s1() {
   hideGameElements();
-  bg.style.backgroundImage = "url('close-door.png')";
-  applyDoorRegions();
-  doorHint.style.display = 'block';
+  setBg("url('close-door.png')");
+  applyDoorZones();
+  applyDoorHint();
+  doorHint.style.display  = 'block';
   doorClick.style.display = 'block';
 
-  // Dog on right side
   Object.assign(dogEl.style, {
-    display: 'block',
-    width: '22%',
-    right: '4%',
-    bottom: '5%',
-    left: 'auto',
-    top: 'auto',
-    cursor: 'default',
-    zIndex: '20',
+    display:    'block',
+    width:      '32%',   // bigger dog
+    right:      '2%',
+    bottom:     '0%',
+    left:       'auto',
+    top:        'auto',
+    cursor:     'default',
+    zIndex:     '20',
     transition: ''
   });
 }
 
-/* STATE 2 — Open door */
+/* ── STATE 2 — Open door ── */
 function s2() {
-  bg.style.backgroundImage = "url('open-door.png')";
-  doorHint.style.display = 'none';
+  setBg("url('open-door.png')");
+  doorHint.style.display  = 'none';
   doorClick.style.display = 'none';
-  applyDoorRegions();
+  applyDoorZones();
   doorDrop.style.display = 'block';
 
   dogEl.style.cursor = 'grab';
   dogEl.classList.add('drag-hint');
 }
 
-/* STATE 3 — Beach / items */
+/* ── STATE 3 — Beach + items ── */
 function s3() {
   hideGameElements();
-  bg.style.backgroundImage = "url('beach.png')";
-
-  beachDog.src = 'sad-dog.png';
+  setBg("url('beach.png')");
+  beachDog.src           = 'sad-dog.png';
   beachDog.style.display = 'block';
-
   [juiceEl, suncreamEl, swimringEl].forEach(e => { e.style.display = 'block'; });
   showDialog("I'm so thirsty 💧");
 }
 
-/* STATE 4 — After juice */
+/* ── STATE 4 — After juice ── */
 function s4() {
-  beachDog.src = 'dog-juice.png';
-  juiceEl.style.display = 'none';
+  beachDog.src           = 'dog-juice.png';
+  juiceEl.style.display  = 'none';
   showDialog("The sun is really hot today! ☀️");
 }
 
-/* STATE 5 — After sun cream */
+/* ── STATE 5 — After sun cream ── */
 function s5() {
-  beachDog.src = 'dog-juice-sun%20cream.png';
-  suncreamEl.style.display = 'none';
+  beachDog.src               = 'dog-juice-sun%20cream.png';
+  suncreamEl.style.display   = 'none';
   showDialog("That swim ring looks pretty! 🏊");
 }
 
-/* STATE 6 — Success */
+/* ── STATE 6 — Victory ── */
 function s6() {
-  beachDog.src = 'happy-dog.png';
+  // Step 1: show happy dog alone — no dialogs, no covers
+  beachDog.src             = 'happy-dog.png';
   swimringEl.style.display = 'none';
   hideDialog();
-  congratsEl.style.display = 'block';
-  goldEl.style.display = 'block';
-  goldEl.classList.add('show');
+
+  // Step 2: after 3 s, reveal congrats + gold + restart
+  s6Timer = setTimeout(() => {
+    s6Timer = null;
+    if (state !== 6) return;          // guard if player restarted
+    congratsEl.style.display = 'block';
+    goldEl.style.display     = 'block';
+    goldEl.classList.add('show');
+    restartBtn.style.display = 'block';
+  }, 3000);
 }
 
-/* ───────────────────────────────────────────
+/* ══════════════════════════════════════════
    CLICK INTERACTIONS
-─────────────────────────────────────────── */
+══════════════════════════════════════════ */
 startBtn.addEventListener('click', () => {
   startScreen.style.display = 'none';
   enter(1);
 });
 
-doorClick.addEventListener('click', () => {
-  if (state === 1) enter(2);
+restartBtn.addEventListener('click', () => {
+  hideGameElements();
+  state = 0;
+  setBg("url('close-door.png')");
+  startScreen.style.display = ''; // restore flex via CSS
 });
+
+doorClick.addEventListener('click', () => { if (state === 1) enter(2); });
 
 juiceEl.addEventListener('click', () => {
   if (state === 3) { enter(4); return; }
@@ -545,14 +573,13 @@ suncreamEl.addEventListener('click', () => {
 });
 
 swimringEl.addEventListener('click', () => {
-  if (state === 5) shake(swimringEl); // must drag
+  if (state === 5) shake(swimringEl); // must be dragged, not clicked
 });
 
-/* ───────────────────────────────────────────
-   DRAG & DROP
-─────────────────────────────────────────── */
-let dragged = null;
-let ox = 0, oy = 0; // pointer offset within element
+/* ══════════════════════════════════════════
+   DRAG & DROP (mouse + touch)
+══════════════════════════════════════════ */
+let dragged = null, ox = 0, oy = 0;
 
 function startDrag(el, cx, cy) {
   dragged = el;
@@ -561,16 +588,15 @@ function startDrag(el, cx, cy) {
   ox = cx - er.left;
   oy = cy - er.top;
 
-  // Convert from right/bottom (or % left) to absolute pixel left/top
+  // Convert from percentage-based positioning to pixel left/top
   el.style.transition = 'none';
-  el.style.left   = (er.left - gr.left) + 'px';
-  el.style.top    = (er.top  - gr.top)  + 'px';
-  el.style.right  = 'auto';
-  el.style.bottom = 'auto';
-  el.style.zIndex = '999';
-  el.style.cursor = 'grabbing';
-  el.classList.remove('drag-hint');
-  el.classList.remove('shaking');
+  el.style.left       = (er.left - gr.left) + 'px';
+  el.style.top        = (er.top  - gr.top)  + 'px';
+  el.style.right      = 'auto';
+  el.style.bottom     = 'auto';
+  el.style.zIndex     = '999';
+  el.style.cursor     = 'grabbing';
+  el.classList.remove('drag-hint', 'shaking');
 }
 
 function moveDrag(cx, cy) {
@@ -589,21 +615,18 @@ function endDrag(cx, cy) {
 
   if (el === dogEl && state === 2) {
     if (hit === 'door') { enter(3); return; }
-    // Failed — shake and return home
     shake(el);
     returnDogHome();
     return;
   }
-
   if (el === swimringEl && state === 5) {
     if (hit === 'beach-dog') { enter(6); return; }
     shake(el);
     returnSwimringHome();
-    return;
   }
 }
 
-/* Center-point overlap test */
+/** True if the dragged element's centre is inside the target element. */
 function centerHitTest(el) {
   const er = el.getBoundingClientRect();
   const cx = (er.left + er.right)  / 2;
@@ -611,64 +634,54 @@ function centerHitTest(el) {
 
   if (el === dogEl) {
     const dr = doorDrop.getBoundingClientRect();
-    if (cx >= dr.left && cx <= dr.right && cy >= dr.top && cy <= dr.bottom) return 'door';
+    if (cx >= dr.left && cx <= dr.right && cy >= dr.top && cy <= dr.bottom)
+      return 'door';
   }
-
   if (el === swimringEl) {
     const br = beachDog.getBoundingClientRect();
-    if (cx >= br.left && cx <= br.right && cy >= br.top && cy <= br.bottom) return 'beach-dog';
+    if (cx >= br.left && cx <= br.right && cy >= br.top && cy <= br.bottom)
+      return 'beach-dog';
   }
-
   return null;
 }
 
-/* Animate dog back to its state-2 home position (right:4%, bottom:5%) */
+/** Animate dog back to its home position (right:2%, bottom:0%). */
 function returnDogHome() {
   const gr = game.getBoundingClientRect();
   const ew = dogEl.getBoundingClientRect().width;
   const eh = dogEl.getBoundingClientRect().height;
-  const tl = gr.width  - ew - gr.width  * 0.04;
-  const tt = gr.height - eh - gr.height * 0.05;
 
   dogEl.style.transition = 'left .38s ease-out, top .38s ease-out';
-  dogEl.style.left   = tl + 'px';
-  dogEl.style.top    = tt + 'px';
+  dogEl.style.left   = (gr.width  - ew - gr.width * 0.02) + 'px';
+  dogEl.style.top    = (gr.height - eh) + 'px';
   dogEl.style.right  = 'auto';
   dogEl.style.bottom = 'auto';
 
   setTimeout(() => {
     Object.assign(dogEl.style, {
-      transition: '',
-      left:   'auto',
-      top:    'auto',
-      right:  '4%',
-      bottom: '5%',
-      zIndex: '20',
-      cursor: 'grab'
+      transition: '', left: 'auto', top: 'auto',
+      right: '2%', bottom: '0%', zIndex: '20', cursor: 'grab'
     });
     dogEl.classList.add('drag-hint');
   }, 400);
 }
 
-/* Animate swim ring back to its CSS class position (left:66%, bottom:3%) */
+/** Animate swim ring back to its CSS class position (left:66%, bottom:3%). */
 function returnSwimringHome() {
   const gr = game.getBoundingClientRect();
   const eh = swimringEl.getBoundingClientRect().height;
-  const tl = gr.width * 0.66;
-  const tt = gr.height - eh - gr.height * 0.03;
 
   swimringEl.style.transition = 'left .38s ease-out, top .38s ease-out';
-  swimringEl.style.left   = tl + 'px';
-  swimringEl.style.top    = tt + 'px';
+  swimringEl.style.left   = (gr.width * 0.66) + 'px';
+  swimringEl.style.top    = (gr.height - eh - gr.height * 0.03) + 'px';
   swimringEl.style.right  = 'auto';
   swimringEl.style.bottom = 'auto';
 
   setTimeout(() => {
-    // Clear all inline positional overrides so CSS class rules resume
     ['left','top','right','bottom','zIndex','cursor','transition'].forEach(p => {
       swimringEl.style[p] = '';
     });
-    swimringEl.style.display = 'block'; // keep visible
+    swimringEl.style.display = 'block'; // keep visible — CSS class has display:none
   }, 400);
 }
 
@@ -678,13 +691,11 @@ dogEl.addEventListener('mousedown', e => {
   e.preventDefault();
   startDrag(dogEl, e.clientX, e.clientY);
 });
-
 swimringEl.addEventListener('mousedown', e => {
   if (state !== 5) return;
   e.preventDefault();
   startDrag(swimringEl, e.clientX, e.clientY);
 });
-
 document.addEventListener('mousemove', e => { moveDrag(e.clientX, e.clientY); });
 document.addEventListener('mouseup',   e => { endDrag(e.clientX, e.clientY); });
 
@@ -694,28 +705,31 @@ dogEl.addEventListener('touchstart', e => {
   e.preventDefault();
   startDrag(dogEl, e.touches[0].clientX, e.touches[0].clientY);
 }, { passive: false });
-
 swimringEl.addEventListener('touchstart', e => {
   if (state !== 5) return;
   e.preventDefault();
   startDrag(swimringEl, e.touches[0].clientX, e.touches[0].clientY);
 }, { passive: false });
-
 document.addEventListener('touchmove', e => {
   if (!dragged) return;
   e.preventDefault();
   moveDrag(e.touches[0].clientX, e.touches[0].clientY);
 }, { passive: false });
-
 document.addEventListener('touchend', e => {
   if (!dragged) return;
   endDrag(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
 });
 
-/* ── Resize: recalculate door regions ── */
+/* ── Resize: recalculate door layout ── */
 window.addEventListener('resize', () => {
-  if (state === 1 || state === 2) applyDoorRegions();
+  if (state === 1) { applyDoorZones(); applyDoorHint(); }
+  if (state === 2) { applyDoorZones(); }
 });
+
+/* ══════════════════════════════════════════
+   INIT — set background for the start screen
+══════════════════════════════════════════ */
+setBg("url('close-door.png')");
 </script>
 </body>
 </html>
