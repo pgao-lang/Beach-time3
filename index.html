@@ -163,7 +163,7 @@
       pointer-events: none;
       display: none;
       z-index: 30;
-      animation: ripplePulse 1.8s ease-out infinite;
+      /* animation defined below with @keyframes ripplePulse */
     }
 
     /* ══════════════════════════════════════════
@@ -208,13 +208,13 @@
 
     #juice-item    { width: 20%; left: 17%; bottom: 3%; }
     #suncream-item { width: 13%; left: 44%; bottom: 3%; }
-    #swimring-item { width: 14%; left: 66%; bottom: 3%; cursor: grab; }
+    #swimring-item { width: 14%; right: 2%; bottom: 3%; cursor: grab; } /* lower-right corner */
 
     /* ══════════════════════════════════════════
        STATE 6 — CONGRATULATIONS + GOLD + RESTART
     ══════════════════════════════════════════ */
     #congrats {
-      /* styled as a bubble with bounce */
+      /* styled as a bubble — animation fully controlled via .entering / .bouncing classes */
       position: absolute;
       top: 5%;
       left: 50%;
@@ -222,7 +222,6 @@
       display: none;
       z-index: 60;
       pointer-events: none;
-      animation: bouncePop .5s ease-in-out infinite alternate;
     }
 
     #gold {
@@ -234,8 +233,8 @@
       display: none;
       z-index: 40;
       pointer-events: none;
+      /* animation fully controlled via .entering / .show classes below */
     }
-    #gold.show { animation: goldPulse 1.6s ease-in-out infinite; }
 
     #restart-btn {
       position: absolute;
@@ -247,82 +246,107 @@
     }
 
     /* ══════════════════════════════════════════
+       WILL-CHANGE — GPU-composite animated layers
+    ══════════════════════════════════════════ */
+    #dog, #beach-dog, #gold, #congrats { will-change: transform, filter; }
+    .item { will-change: transform; }
+    #door-hint { will-change: transform, box-shadow, opacity; }
+
+    /* ══════════════════════════════════════════
        KEYFRAMES
     ══════════════════════════════════════════ */
 
-    /* Circular ripple — door hint */
+    /* ── Circular ripple — door hint ──
+       Three concentric rings expand from the core
+       and fade out — cleaner than box-shadow layers. */
     @keyframes ripplePulse {
-      0% {
-        transform: scale(0.9);
-        box-shadow:
-          0 0 0  0px rgba(255,222,0,0.85),
-          0 0 0  0px rgba(255,222,0,0.5),
-          0 0 0  0px rgba(255,222,0,0.25);
-        opacity: 1;
-      }
-      60% {
-        transform: scale(1.15);
-        box-shadow:
-          0 0 0 14px rgba(255,222,0,0.3),
-          0 0 0 28px rgba(255,222,0,0.15),
-          0 0 0 44px rgba(255,222,0,0.04);
-        opacity: 1;
-      }
-      100% {
-        transform: scale(0.9);
-        box-shadow:
-          0 0 0  0px rgba(255,222,0,0),
-          0 0 0  0px rgba(255,222,0,0),
-          0 0 0  0px rgba(255,222,0,0);
-        opacity: 0.6;
-      }
+      0%   { transform: scale(1);   box-shadow: 0 0 0  0px rgba(255,222,0,0.9), 0 0 0  0px rgba(255,222,0,0.55), 0 0 0  0px rgba(255,222,0,0.25); opacity: 1; }
+      70%  { transform: scale(1.2); box-shadow: 0 0 0 16px rgba(255,222,0,0.2), 0 0 0 32px rgba(255,222,0,0.1), 0 0 0 48px rgba(255,222,0,0.03); opacity: 1; }
+      100% { transform: scale(1);   box-shadow: 0 0 0  0px rgba(255,222,0,0),   0 0 0  0px rgba(255,222,0,0),   0 0 0  0px rgba(255,222,0,0);    opacity: 0.65; }
     }
+    #door-hint { animation: ripplePulse 2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite; }
 
-    /* Dog drag hint */
+    /* ── Dog drag hint — soft sine bounce with glow ── */
     @keyframes dogBounce {
-      0%, 100% {
-        filter: drop-shadow(0 0 6px rgba(255,220,0,0.7));
-        transform: translateY(0);
-      }
-      50% {
-        filter: drop-shadow(0 0 20px rgba(255,220,0,1));
-        transform: translateY(-10px);
-      }
+      0%   { transform: translateY(0px)   scale(1);    filter: drop-shadow(0 0  5px rgba(255,220,0,0.55)); }
+      45%  { transform: translateY(-13px) scale(1.03); filter: drop-shadow(0 0 22px rgba(255,220,0,1)); }
+      55%  { transform: translateY(-13px) scale(1.03); filter: drop-shadow(0 0 22px rgba(255,220,0,1)); }
+      100% { transform: translateY(0px)   scale(1);    filter: drop-shadow(0 0  5px rgba(255,220,0,0.55)); }
     }
+    #dog.drag-hint { animation: dogBounce 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
-    /* Wrong-target shake */
+    /* ── Wrong-target shake ── */
     @keyframes shake {
-      0%, 100% { transform: translateX(0)     rotate(0deg); }
-      15%       { transform: translateX(-11px) rotate(-4deg); }
-      30%       { transform: translateX( 11px) rotate( 4deg); }
-      45%       { transform: translateX( -7px) rotate(-2.5deg); }
-      60%       { transform: translateX(  7px) rotate( 2.5deg); }
-      75%       { transform: translateX( -4px) rotate(-1deg); }
-      90%       { transform: translateX(  4px) rotate( 1deg); }
+      0%, 100% { transform: translateX(0)    rotate(0deg); }
+      18%       { transform: translateX(-10px) rotate(-4deg); }
+      36%       { transform: translateX( 10px) rotate( 4deg); }
+      54%       { transform: translateX( -6px) rotate(-2deg); }
+      72%       { transform: translateX(  6px) rotate( 2deg); }
+      88%       { transform: translateX( -3px) rotate(-1deg); }
     }
+    .shaking { animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) !important; }
 
-    /* Congrats bubble bounce */
+    /* ── Dialog pop-in ── */
+    @keyframes dialogPop {
+      0%   { opacity: 0; transform: translateX(-50%) scale(0.7) translateY(-8px); }
+      65%  { opacity: 1; transform: translateX(-50%) scale(1.06) translateY(2px); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1)    translateY(0); }
+    }
+    #dialog.popping { animation: dialogPop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+    /* ── Item pop-in (staggered via animation-delay in JS) ── */
+    @keyframes itemPop {
+      0%   { opacity: 0; transform: scale(0.4) translateY(22px); }
+      70%  { opacity: 1; transform: scale(1.1) translateY(-4px); }
+      100% { opacity: 1; transform: scale(1)   translateY(0); }
+    }
+    .item.popping { animation: itemPop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+    /* ── Beach dog fade-slide in ── */
+    @keyframes heroIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(14px) scale(0.92); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0)    scale(1); }
+    }
+    #beach-dog.entering { animation: heroIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+    /* ── Congrats: pop-in, then hand off to bouncePop ── */
+    @keyframes congratsPop {
+      0%   { opacity: 0; transform: translateX(-50%) scale(0.3) translateY(16px); }
+      70%  { opacity: 1; transform: translateX(-50%) scale(1.12) translateY(-4px); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1)    translateY(0); }
+    }
     @keyframes bouncePop {
       from { transform: translateX(-50%) translateY(0px)   scale(1); }
-      to   { transform: translateX(-50%) translateY(-12px) scale(1.08); }
+      to   { transform: translateX(-50%) translateY(-11px) scale(1.07); }
     }
+    #congrats.entering { animation: congratsPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+    #congrats.bouncing { animation: bouncePop   0.65s cubic-bezier(0.34, 1.56, 0.64, 1) infinite alternate; }
 
-    /* Gold glitter pulse */
+    /* ── Gold: scale-in, then hand off to goldPulse ── */
+    @keyframes goldIn {
+      0%   { opacity: 0; transform: translateX(-50%) scale(0.4) translateY(30px); }
+      70%  { opacity: 1; transform: translateX(-50%) scale(1.06) translateY(-4px); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1)    translateY(0); }
+    }
     @keyframes goldPulse {
       0%, 100% {
         transform: translateX(-50%) scale(1);
-        filter: drop-shadow(0 0 8px rgba(255,215,0,0.5));
+        filter: drop-shadow(0 0 10px rgba(255,215,0,0.45)) drop-shadow(0 0 3px rgba(255,255,180,0.5));
       }
       50% {
-        transform: translateX(-50%) scale(1.08);
-        filter:
-          drop-shadow(0 0 28px rgba(255,215,0,1))
-          drop-shadow(0 0 56px rgba(255,160,0,0.8));
+        transform: translateX(-50%) scale(1.07);
+        filter: drop-shadow(0 0 32px rgba(255,215,0,0.95)) drop-shadow(0 0 60px rgba(255,155,0,0.75)) drop-shadow(0 0 5px rgba(255,255,200,0.9));
       }
     }
+    #gold.entering { animation: goldIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+    #gold.show     { animation: goldPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
-    /* Shake utility class */
-    .shaking { animation: shake .52s ease !important; }
+    /* ── Restart button fade-up ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    #restart-btn.entering { animation: fadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
   </style>
 </head>
 <body>
@@ -394,11 +418,18 @@ let s6Timer = null; // guard for STATE 6 delayed reveal
 
 /* ══════════════════════════════════════════
    BACKGROUND HELPER
-   Syncs both the in-game layer and the blurred backdrop.
+   Syncs both the in-game layer and the blurred backdrop
+   with a brief opacity crossfade.
 ══════════════════════════════════════════ */
 function setBg(url) {
-  bg.style.backgroundImage       = url;
-  backdrop.style.backgroundImage = url;
+  bg.style.transition = 'opacity 0.18s ease-out';
+  bg.style.opacity = '0';
+  setTimeout(() => {
+    bg.style.backgroundImage       = url;
+    backdrop.style.backgroundImage = url;
+    bg.style.transition = 'opacity 0.32s ease-in';
+    bg.style.opacity = '1';
+  }, 180);
 }
 
 /* ══════════════════════════════════════════
@@ -435,8 +466,13 @@ function applyDoorHint() {
    UI HELPERS
 ══════════════════════════════════════════ */
 function showDialog(text) {
-  dialogEl.textContent  = text;
+  dialogEl.textContent = text;
   dialogEl.style.display = 'block';
+  // Re-trigger pop-in animation
+  dialogEl.classList.remove('popping');
+  void dialogEl.offsetWidth;
+  dialogEl.classList.add('popping');
+  dialogEl.addEventListener('animationend', () => dialogEl.classList.remove('popping'), { once: true });
 }
 function hideDialog() { dialogEl.style.display = 'none'; }
 
@@ -453,12 +489,20 @@ function hideGameElements() {
   dogEl.style.display = 'none';
   dogEl.classList.remove('drag-hint');
   beachDog.style.display = 'none';
-  [juiceEl, suncreamEl, swimringEl].forEach(e => { e.style.display = 'none'; });
+  beachDog.classList.remove('entering');
+  [juiceEl, suncreamEl, swimringEl].forEach(e => {
+    e.style.display = 'none';
+    e.classList.remove('popping');
+    e.style.animationDelay = '';
+  });
   congratsEl.style.display = 'none';
+  congratsEl.classList.remove('entering', 'bouncing');
   goldEl.style.display     = 'none';
-  goldEl.classList.remove('show');
+  goldEl.classList.remove('entering', 'show');
   restartBtn.style.display = 'none';
+  restartBtn.classList.remove('entering');
   hideDialog();
+  dialogEl.classList.remove('popping');
 }
 
 /* ══════════════════════════════════════════
@@ -507,9 +551,28 @@ function s2() {
 function s3() {
   hideGameElements();
   setBg("url('beach.png')");
-  beachDog.src           = 'sad-dog.png';
+
+  // Beach dog enters with a fade-slide
+  beachDog.src = 'sad-dog.png';
   beachDog.style.display = 'block';
-  [juiceEl, suncreamEl, swimringEl].forEach(e => { e.style.display = 'block'; });
+  beachDog.classList.remove('entering');
+  void beachDog.offsetWidth;
+  beachDog.classList.add('entering');
+  beachDog.addEventListener('animationend', () => beachDog.classList.remove('entering'), { once: true });
+
+  // Items pop in with a staggered delay
+  [juiceEl, suncreamEl, swimringEl].forEach((e, i) => {
+    e.style.display = 'block';
+    e.style.animationDelay = (i * 0.12) + 's';
+    e.classList.remove('popping');
+    void e.offsetWidth;
+    e.classList.add('popping');
+    e.addEventListener('animationend', () => {
+      e.classList.remove('popping');
+      e.style.animationDelay = '';
+    }, { once: true });
+  });
+
   showDialog("I'm so thirsty 💧");
 }
 
@@ -529,19 +592,49 @@ function s5() {
 
 /* ── STATE 6 — Victory ── */
 function s6() {
-  // Step 1: show happy dog alone — no dialogs, no covers
+  // Step 1: show happy dog alone for 3 s
   beachDog.src             = 'happy-dog.png';
   swimringEl.style.display = 'none';
   hideDialog();
 
-  // Step 2: after 3 s, reveal congrats + gold + restart
+  // Step 2: staggered reveal — congrats → gold → restart
   s6Timer = setTimeout(() => {
     s6Timer = null;
-    if (state !== 6) return;          // guard if player restarted
+    if (state !== 6) return;
+
+    // Congrats: pop-in, then hand off to infinite bounce
     congratsEl.style.display = 'block';
-    goldEl.style.display     = 'block';
-    goldEl.classList.add('show');
-    restartBtn.style.display = 'block';
+    congratsEl.classList.remove('entering', 'bouncing');
+    void congratsEl.offsetWidth;
+    congratsEl.classList.add('entering');
+    congratsEl.addEventListener('animationend', () => {
+      congratsEl.classList.replace('entering', 'bouncing');
+    }, { once: true });
+
+    // Gold: pop-in after 220 ms, then hand off to glitter pulse
+    setTimeout(() => {
+      if (state !== 6) return;
+      goldEl.style.display = 'block';
+      goldEl.classList.remove('entering', 'show');
+      void goldEl.offsetWidth;
+      goldEl.classList.add('entering');
+      goldEl.addEventListener('animationend', () => {
+        goldEl.classList.replace('entering', 'show');
+      }, { once: true });
+    }, 220);
+
+    // Restart button: fade-up after 440 ms
+    setTimeout(() => {
+      if (state !== 6) return;
+      restartBtn.style.display = 'block';
+      restartBtn.classList.remove('entering');
+      void restartBtn.offsetWidth;
+      restartBtn.classList.add('entering');
+      restartBtn.addEventListener('animationend', () => {
+        restartBtn.classList.remove('entering');
+      }, { once: true });
+    }, 440);
+
   }, 3000);
 }
 
@@ -645,13 +738,14 @@ function centerHitTest(el) {
   return null;
 }
 
-/** Animate dog back to its home position (right:2%, bottom:0%). */
+/** Animate dog back to its home position (right:2%, bottom:0%) with spring easing. */
 function returnDogHome() {
   const gr = game.getBoundingClientRect();
   const ew = dogEl.getBoundingClientRect().width;
   const eh = dogEl.getBoundingClientRect().height;
 
-  dogEl.style.transition = 'left .38s ease-out, top .38s ease-out';
+  const SPRING = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
+  dogEl.style.transition = `left 0.5s ${SPRING}, top 0.5s ${SPRING}`;
   dogEl.style.left   = (gr.width  - ew - gr.width * 0.02) + 'px';
   dogEl.style.top    = (gr.height - eh) + 'px';
   dogEl.style.right  = 'auto';
@@ -663,26 +757,33 @@ function returnDogHome() {
       right: '2%', bottom: '0%', zIndex: '20', cursor: 'grab'
     });
     dogEl.classList.add('drag-hint');
-  }, 400);
+  }, 520);
 }
 
-/** Animate swim ring back to its CSS class position (left:66%, bottom:3%). */
+/** Animate swim ring back to lower-right corner (right:2%, bottom:3%) with spring easing. */
 function returnSwimringHome() {
   const gr = game.getBoundingClientRect();
+  const ew = swimringEl.getBoundingClientRect().width;
   const eh = swimringEl.getBoundingClientRect().height;
 
-  swimringEl.style.transition = 'left .38s ease-out, top .38s ease-out';
-  swimringEl.style.left   = (gr.width * 0.66) + 'px';
-  swimringEl.style.top    = (gr.height - eh - gr.height * 0.03) + 'px';
+  // Pixel equivalent of CSS: right:2%, bottom:3%
+  const targetLeft = gr.width  - ew - gr.width  * 0.02;
+  const targetTop  = gr.height - eh - gr.height * 0.03;
+
+  const SPRING = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
+  swimringEl.style.transition = `left 0.5s ${SPRING}, top 0.5s ${SPRING}`;
+  swimringEl.style.left   = targetLeft + 'px';
+  swimringEl.style.top    = targetTop  + 'px';
   swimringEl.style.right  = 'auto';
   swimringEl.style.bottom = 'auto';
 
   setTimeout(() => {
+    // Clear inline styles → CSS class (right:2%, bottom:3%) takes over
     ['left','top','right','bottom','zIndex','cursor','transition'].forEach(p => {
       swimringEl.style[p] = '';
     });
-    swimringEl.style.display = 'block'; // keep visible — CSS class has display:none
-  }, 400);
+    swimringEl.style.display = 'block'; // CSS class has display:none; keep it visible
+  }, 520);
 }
 
 /* ── Mouse events ── */
