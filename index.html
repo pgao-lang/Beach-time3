@@ -418,18 +418,11 @@ let s6Timer = null; // guard for STATE 6 delayed reveal
 
 /* ══════════════════════════════════════════
    BACKGROUND HELPER
-   Syncs both the in-game layer and the blurred backdrop
-   with a brief opacity crossfade.
+   Syncs both the in-game layer and the blurred backdrop.
 ══════════════════════════════════════════ */
 function setBg(url) {
-  bg.style.transition = 'opacity 0.18s ease-out';
-  bg.style.opacity = '0';
-  setTimeout(() => {
-    bg.style.backgroundImage       = url;
-    backdrop.style.backgroundImage = url;
-    bg.style.transition = 'opacity 0.32s ease-in';
-    bg.style.opacity = '1';
-  }, 180);
+  bg.style.backgroundImage       = url;
+  backdrop.style.backgroundImage = url;
 }
 
 /* ══════════════════════════════════════════
@@ -494,6 +487,11 @@ function hideGameElements() {
     e.style.display = 'none';
     e.classList.remove('popping');
     e.style.animationDelay = '';
+  });
+  // Clear any inline positional styles left over from dragging the swim ring,
+  // so the CSS rule (right:2%; bottom:3%) is fully restored on the next round.
+  ['left','top','right','bottom','zIndex','cursor','transition'].forEach(p => {
+    swimringEl.style[p] = '';
   });
   congratsEl.style.display = 'none';
   congratsEl.classList.remove('entering', 'bouncing');
